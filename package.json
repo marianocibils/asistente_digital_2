@@ -1,16 +1,15 @@
 {
-  "name": "ia-design-assistant",
+  "name": "asistente_digital_2",
   "version": "1.0.0",
-  "description": "",
+  "description": "Aplicación web que genera imágenes con IA a partir de color y forma",
   "main": "server.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module",
   "dependencies": {
     "cors": "^2.8.6",
     "express": "^5.2.1",
