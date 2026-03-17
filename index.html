@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>AI Design Generator</title>
+
+<style>
+
+body{
+  margin:0;
+  font-family: Arial, sans-serif;
+  background-color:#0f0f0f;
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.container{
+  background:#1a1a1a;
+  padding:30px;
+  border-radius:12px;
+  width:350px;
+  text-align:center;
+  box-shadow:0 0 20px rgba(255, 204, 0, 0.1);
+}
+
+h2{
+  margin-bottom:10px;
+  color:#ffcc00;
+}
+
+.buttons{
+  margin-bottom:20px;
+}
+
+button{
+  background:#2a2a2a;
+  color:white;
+  border:none;
+  padding:10px 15px;
+  margin:5px;
+  border-radius:6px;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+button:hover{
+  background:#ffcc00;
+  color:black;
+}
+
+button.active{
+  background:#ffcc00;
+  color:black;
+  font-weight:bold;
+}
+
+.generate-btn{
+  background:#ffcc00;
+  color:black;
+  width:100%;
+  margin-top:10px;
+}
+
+.generate-btn:hover{
+  background:#e6b800;
+}
+
+img{
+  margin-top:20px;
+  border-radius:8px;
+  max-width:100%;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Elegí color</h2>
+
+<div class="buttons">
+<button onclick="setColor('yellow', this)">Amarillo</button>
+<button onclick="setColor('blue', this)">Azul</button>
+<button onclick="setColor('green', this)">Verde</button>
+</div>
+
+<h2>Elegí forma</h2>
+
+<div class="buttons">
+<button onclick="setShape('triangle', this)">Triángulo</button>
+<button onclick="setShape('circle', this)">Círculo</button>
+<button onclick="setShape('square', this)">Cuadrado</button>
+</div>
+
+<button class="generate-btn" onclick="generate()">Generar con IA</button>
+
+<img id="result">
+
+</div>
+
+<script>
+
+let color="";
+let shape="";
+
+// manejar estado visual
+function clearActive(group){
+  group.forEach(btn => btn.classList.remove("active"));
+}
+
+function setColor(c, el){
+  color=c;
+  const buttons = document.querySelectorAll(".buttons")[0].children;
+  clearActive([...buttons]);
+  el.classList.add("active");
+}
+
+function setShape(s, el){
+  shape=s;
+  const buttons = document.querySelectorAll(".buttons")[1].children;
+  clearActive([...buttons]);
+  el.classList.add("active");
+}
+
+async function generate(){
+
+ if(!color || !shape){
+   alert("Seleccioná color y forma");
+   return;
+ }
+
+ const response = await fetch("/generar",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({color,shape})
+ });
+
+ const data = await response.json();
+
+ document.getElementById("result").src=data.image;
+
+}
+
+</script>
+
+</body>
+</html>
