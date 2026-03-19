@@ -217,12 +217,6 @@ function compressImage(file, callback) {
   reader.readAsDataURL(file);
 }
 
-{
-      const reader = new FileReader();
-      reader.onload = (e) => callback(e.target.result);
-      reader.readAsDataURL(file);
-    }
-
     referenceInput.addEventListener("change", () => {
       const file = referenceInput.files[0];
       if (!file) return;
