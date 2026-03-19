@@ -1,19 +1,17 @@
 {
   "name": "asistente_digital_2",
   "version": "1.0.0",
-  "description": "Aplicación web que genera imágenes con IA a partir de color y forma",
+  "description": "Aplicación web que genera piezas para redes con IA",
   "main": "server.js",
   "type": "module",
   "scripts": {
     "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "cors": "^2.8.6",
+    "cors": "^2.8.5",
     "dotenv": "^17.3.1",
-    "express": "^5.2.1",
+    "express": "^5.1.0",
+    "multer": "^2.0.0",
     "openai": "^6.29.0"
   }
 }

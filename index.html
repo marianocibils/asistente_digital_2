@@ -1,160 +1,246 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>AI Design Generator</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generador de piezas para redes</title>
+  <style>
+    body{
+      margin:0;
+      font-family:Arial, sans-serif;
+      background:#0f0f0f;
+      color:white;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      min-height:100vh;
+      padding:30px 15px;
+    }
 
-<style>
+    .container{
+      width:100%;
+      max-width:700px;
+      background:#1a1a1a;
+      border-radius:16px;
+      padding:24px;
+      box-shadow:0 0 24px rgba(255,204,0,.08);
+    }
 
-body{
-  margin:0;
-  font-family: Arial, sans-serif;
-  background-color:#0f0f0f;
-  color:white;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-}
+    h1{
+      margin-top:0;
+      color:#ffcc00;
+      text-align:center;
+    }
 
-.container{
-  background:#1a1a1a;
-  padding:30px;
-  border-radius:12px;
-  width:350px;
-  text-align:center;
-  box-shadow:0 0 20px rgba(255, 204, 0, 0.1);
-}
+    .field{
+      margin-bottom:16px;
+    }
 
-h2{
-  margin-bottom:10px;
-  color:#ffcc00;
-}
+    label{
+      display:block;
+      margin-bottom:8px;
+      font-weight:bold;
+    }
 
-.buttons{
-  margin-bottom:20px;
-}
+    input[type="text"],
+    textarea,
+    input[type="file"]{
+      width:100%;
+      box-sizing:border-box;
+      padding:12px;
+      border-radius:8px;
+      border:none;
+      background:#2a2a2a;
+      color:white;
+      font-size:14px;
+    }
 
-button{
-  background:#2a2a2a;
-  color:white;
-  border:none;
-  padding:10px 15px;
-  margin:5px;
-  border-radius:6px;
-  cursor:pointer;
-  transition:0.2s;
-}
+    textarea{
+      min-height:100px;
+      resize:vertical;
+    }
 
-button:hover{
-  background:#ffcc00;
-  color:black;
-}
+    .buttons{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:20px;
+    }
 
-button.active{
-  background:#ffcc00;
-  color:black;
-  font-weight:bold;
-}
+    button{
+      background:#ffcc00;
+      color:black;
+      border:none;
+      padding:12px 16px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:bold;
+    }
 
-.generate-btn{
-  background:#ffcc00;
-  color:black;
-  width:100%;
-  margin-top:10px;
-}
+    button:hover{
+      background:#e6b800;
+    }
 
-.generate-btn:hover{
-  background:#e6b800;
-}
+    .preview{
+      margin-top:10px;
+      max-width:100%;
+      border-radius:10px;
+      display:none;
+    }
 
-img{
-  margin-top:20px;
-  border-radius:8px;
-  max-width:100%;
-}
+    .results{
+      margin-top:24px;
+      display:grid;
+      gap:20px;
+    }
 
-</style>
+    .card{
+      background:#222;
+      padding:14px;
+      border-radius:12px;
+    }
 
+    .card h3{
+      margin-top:0;
+      color:#ffcc00;
+    }
+
+    .result-img{
+      width:100%;
+      border-radius:10px;
+      margin-top:10px;
+    }
+
+    .loader{
+      display:none;
+      margin-top:16px;
+      text-align:center;
+      opacity:.9;
+    }
+  </style>
 </head>
-
 <body>
+  <div class="container">
+    <h1>Generador de piezas con IA</h1>
 
-<div class="container">
+    <div class="field">
+      <label for="referenceImage">Cargue una imagen de ejemplo</label>
+      <input type="file" id="referenceImage" accept="image/*" />
+      <img id="previewImage" class="preview" />
+    </div>
 
-<h2>Elija un color</h2>
+    <div class="field">
+      <label for="title">Título principal</label>
+      <input
+        type="text"
+        id="title"
+        placeholder="Escriba el título de su imagen aquí..."
+      />
+    </div>
 
-<div class="buttons">
-<button onclick="setColor('yellow', this)">Amarillo</button>
-<button onclick="setColor('blue', this)">Azul</button>
-<button onclick="setColor('green', this)">Verde</button>
-</div>
+    <div class="field">
+      <label for="contact">Información de contacto</label>
+      <textarea
+        id="contact"
+        placeholder="Agregue la información de contacto aquí..."
+      ></textarea>
+    </div>
 
-<h2>Elija una forma</h2>
+    <div class="field">
+      <label for="extra">Indicaciones extra</label>
+      <textarea
+        id="extra"
+        placeholder="Ejemplo: estilo elegante, moderno, con colores de marca, mantener el producto de la imagen, composición publicitaria..."
+      ></textarea>
+    </div>
 
-<div class="buttons">
-<button onclick="setShape('triangle', this)">Triángulo</button>
-<button onclick="setShape('circle', this)">Círculo</button>
-<button onclick="setShape('square', this)">Cuadrado</button>
-</div>
+    <div class="buttons">
+      <button onclick="generateImages()">Generar ambas piezas</button>
+    </div>
 
-<button class="generate-btn" onclick="generate()">Generar con IA</button>
+    <div class="loader" id="loader">Generando imágenes...</div>
 
-<img id="result">
+    <div class="results" id="results" style="display:none;">
+      <div class="card">
+        <h3>Post 1080 x 1350</h3>
+        <img id="imgPost" class="result-img" />
+      </div>
 
-</div>
+      <div class="card">
+        <h3>Story 1080 x 1920</h3>
+        <img id="imgStory" class="result-img" />
+      </div>
+    </div>
+  </div>
 
-<script>
+  <script>
+    const inputFile = document.getElementById("referenceImage");
+    const previewImage = document.getElementById("previewImage");
 
-let color="";
-let shape="";
+    inputFile.addEventListener("change", () => {
+      const file = inputFile.files[0];
+      if (!file) return;
 
-// manejar estado visual
-function clearActive(group){
-  group.forEach(btn => btn.classList.remove("active"));
-}
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewImage.src = e.target.result;
+        previewImage.style.display = "block";
+      };
+      reader.readAsDataURL(file);
+    });
 
-function setColor(c, el){
-  color=c;
-  const buttons = document.querySelectorAll(".buttons")[0].children;
-  clearActive([...buttons]);
-  el.classList.add("active");
-}
+    async function generateImages() {
+      const file = inputFile.files[0];
+      const title = document.getElementById("title").value.trim();
+      const contact = document.getElementById("contact").value.trim();
+      const extra = document.getElementById("extra").value.trim();
 
-function setShape(s, el){
-  shape=s;
-  const buttons = document.querySelectorAll(".buttons")[1].children;
-  clearActive([...buttons]);
-  el.classList.add("active");
-}
+      if (!file) {
+        alert("Cargá una imagen de ejemplo.");
+        return;
+      }
 
-async function generate(){
+      if (!title) {
+        alert("Escribí un título.");
+        return;
+      }
 
- if(!color || !shape){
-   alert("Seleccioná color y forma");
-   return;
- }
+      const loader = document.getElementById("loader");
+      const results = document.getElementById("results");
+      const imgPost = document.getElementById("imgPost");
+      const imgStory = document.getElementById("imgStory");
 
- const response = await fetch("/api/gpt",{
-   method:"POST",
-   headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({color,shape})
- });
+      loader.style.display = "block";
+      results.style.display = "none";
 
- const data = await response.json();
+      const formData = new FormData();
+      formData.append("referenceImage", file);
+      formData.append("title", title);
+      formData.append("contact", contact);
+      formData.append("extra", extra);
 
- // 👇 ESTO ES EL DEBUG
- console.log("RESPUESTA DEL BACKEND:", data);
+      try {
+        const response = await fetch("/api/generar", {
+          method: "POST",
+          body: formData
+        });
 
- if(data.image){
-   document.getElementById("result").src = data.image;
- } else {
-   alert("Error generando imagen");
- }
+        const data = await response.json();
 
-}
+        if (!response.ok) {
+          throw new Error(data.error || "Error al generar imágenes");
+        }
 
-</script>
+        imgPost.src = data.post;
+        imgStory.src = data.story;
 
+        results.style.display = "grid";
+      } catch (error) {
+        alert(error.message || "No se pudo generar");
+      } finally {
+        loader.style.display = "none";
+      }
+    }
+  </script>
 </body>
 </html>
