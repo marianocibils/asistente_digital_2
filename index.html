@@ -135,7 +135,7 @@ async function generate(){
    return;
  }
 
-const response = await fetch("/api/gpt",{
+ const response = await fetch("/api/gpt",{
    method:"POST",
    headers:{"Content-Type":"application/json"},
    body:JSON.stringify({color,shape})
@@ -143,7 +143,14 @@ const response = await fetch("/api/gpt",{
 
  const data = await response.json();
 
- document.getElementById("result").src=data.image;
+ // 👇 ESTO ES EL DEBUG
+ console.log("RESPUESTA DEL BACKEND:", data);
+
+ if(data.image){
+   document.getElementById("result").src = data.image;
+ } else {
+   alert("Error generando imagen");
+ }
 
 }
 

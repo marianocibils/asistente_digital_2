@@ -8,21 +8,38 @@ export default async function handler(req, res) {
 
     const { color, shape } = req.body;
 
+    if (!color || !shape) {
+      return res.status(400).json({ error: "Faltan datos" });
+    }
+
     const prompt = `A simple ${color} ${shape} geometric shape, minimal design, centered, clean background`;
 
     const result = await openai.images.generate({
       model: "gpt-image-1",
-      prompt: prompt,
+      prompt,
       size: "1024x1024"
     });
 
-    const image_base64 = result.data[0].b64_json;
-    const image_url = `data:image/png;base64,${image_base64}`;
+    console.log("RESULTADO OPENAI:", result);
 
-    res.status(200).json({ image: image_url });
+    const image_base64 = result?.data?.[0]?.b64_json;
+
+    if (!image_base64) {
+      return res.status(500).json({
+        error: "OpenAI no devolvió imagen",
+        debug: result
+      });
+    }
+
+    res.status(200).json({
+      image: `data:image/png;base64,${image_base64}`
+    });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "No se pudo generar la imagen" });
+    console.error("ERROR BACKEND:", error);
+
+    res.status(500).json({
+      error: error.message || "Error desconocido"
+    });
   }
 }
