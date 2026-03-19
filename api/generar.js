@@ -68,12 +68,12 @@ Create a vertical Instagram story adapted to 1080x1920 proportion.
       openai.images.generate({
         model: "gpt-image-1",
         prompt: postPrompt,
-        size: "1024x1536"
+        size: "1080x1350"
       }),
       openai.images.generate({
         model: "gpt-image-1",
         prompt: storyPrompt,
-        size: "1024x1536"
+        size: "1080x1920"
       })
     ]);
 
