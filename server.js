@@ -7,9 +7,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 import generarRouter from "./api/generar.js";
 
-app.use("/api", generarRouter);
-
 const app = express();
+
+app.use("/api", generarRouter);
 const PORT = process.env.PORT || 3000;
 
 const __filename = fileURLToPath(import.meta.url);

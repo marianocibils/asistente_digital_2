@@ -191,6 +191,7 @@
     let referenceImageBase64 = "";
     let sourceImageBase64 = "";
 
+function compressImage(file, callback) {
   const img = new Image();
   const reader = new FileReader();
 
@@ -200,7 +201,7 @@
 
   img.onload = () => {
     const canvas = document.createElement("canvas");
-    const maxWidth = 800;
+    const maxWidth = 600;
 
     const scale = maxWidth / img.width;
     canvas.width = maxWidth;
@@ -214,9 +215,9 @@
   };
 
   reader.readAsDataURL(file);
+}
 
-
-    function fileToBase64(file, callback) {
+{
       const reader = new FileReader();
       reader.onload = (e) => callback(e.target.result);
       reader.readAsDataURL(file);
