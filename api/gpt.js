@@ -6,18 +6,23 @@ export default async function handler(req, res) {
       apiKey: process.env.OPENAI_API_KEY,
     });
 
-    const { texto } = JSON.parse(req.body);
+    const { color, shape } = req.body;
 
-    const response = await openai.responses.create({
-      model: "gpt-4.1",
-      input: texto,
+    const prompt = `A simple ${color} ${shape} geometric shape, minimal design, centered, clean background`;
+
+    const result = await openai.images.generate({
+      model: "gpt-image-1",
+      prompt: prompt,
+      size: "1024x1024"
     });
 
-    res.status(200).json({
-      resultado: response.output[0].content[0].text,
-    });
+    const image_base64 = result.data[0].b64_json;
+    const image_url = `data:image/png;base64,${image_base64}`;
+
+    res.status(200).json({ image: image_url });
 
   } catch (error) {
-    res.status(500).json({ error: "Error en el servidor" });
+    console.error(error);
+    res.status(500).json({ error: "No se pudo generar la imagen" });
   }
 }

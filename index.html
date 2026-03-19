@@ -135,7 +135,7 @@ async function generate(){
    return;
  }
 
- const response = await fetch("/generar",{
+const response = await fetch("/api/gpt",{
    method:"POST",
    headers:{"Content-Type":"application/json"},
    body:JSON.stringify({color,shape})
