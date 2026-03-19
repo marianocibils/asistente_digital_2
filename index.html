@@ -125,8 +125,17 @@
 
     <div class="field">
       <label for="referenceImage">Cargue una imagen de ejemplo</label>
-      <input type="file" id="referenceImage" accept="image/*" />
-      <img id="previewImage" class="preview" />
+<div class="field">
+  <label for="referenceImage">Imagen de referencia</label>
+  <input type="file" id="referenceImage" accept="image/*" />
+  <img id="previewReference" style="display:none; max-width:100%; margin-top:10px; border-radius:8px;" />
+</div>
+
+<div class="field">
+  <label for="sourceImage">Imagen que debe usar la pieza</label>
+  <input type="file" id="sourceImage" accept="image/*" />
+  <img id="previewSource" style="display:none; max-width:100%; margin-top:10px; border-radius:8px;" />
+</div>
     </div>
 
     <div class="field">
@@ -174,73 +183,110 @@
   </div>
 
   <script>
-    const inputFile = document.getElementById("referenceImage");
-    const previewImage = document.getElementById("previewImage");
+  const referenceInput = document.getElementById("referenceImage");
+  const sourceInput = document.getElementById("sourceImage");
 
-    inputFile.addEventListener("change", () => {
-      const file = inputFile.files[0];
-      if (!file) return;
+  const previewReference = document.getElementById("previewReference");
+  const previewSource = document.getElementById("previewSource");
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        previewImage.src = e.target.result;
-        previewImage.style.display = "block";
-      };
-      reader.readAsDataURL(file);
+  let referenceImageBase64 = "";
+  let sourceImageBase64 = "";
+
+  function fileToBase64(file, callback) {
+    const reader = new FileReader();
+    reader.onload = (e) => callback(e.target.result);
+    reader.readAsDataURL(file);
+  }
+
+  referenceInput.addEventListener("change", () => {
+    const file = referenceInput.files[0];
+    if (!file) return;
+
+    fileToBase64(file, (base64) => {
+      referenceImageBase64 = base64;
+      previewReference.src = base64;
+      previewReference.style.display = "block";
     });
+  });
 
-    async function generateImages() {
-      const file = inputFile.files[0];
-      const title = document.getElementById("title").value.trim();
-      const contact = document.getElementById("contact").value.trim();
-      const extra = document.getElementById("extra").value.trim();
+  sourceInput.addEventListener("change", () => {
+    const file = sourceInput.files[0];
+    if (!file) return;
 
-      if (!file) {
-        alert("Cargá una imagen de ejemplo.");
-        return;
-      }
+    fileToBase64(file, (base64) => {
+      sourceImageBase64 = base64;
+      previewSource.src = base64;
+      previewSource.style.display = "block";
+    });
+  });
 
-      if (!title) {
-        alert("Escribí un título.");
-        return;
-      }
+  async function generateImages() {
+    const title = document.getElementById("title").value.trim();
+    const contact = document.getElementById("contact").value.trim();
+    const extra = document.getElementById("extra").value.trim();
 
-      const loader = document.getElementById("loader");
-      const results = document.getElementById("results");
-      const imgPost = document.getElementById("imgPost");
-      const imgStory = document.getElementById("imgStory");
+    const loader = document.getElementById("loader");
+    const results = document.getElementById("results");
+    const imgPost = document.getElementById("imgPost");
+    const imgStory = document.getElementById("imgStory");
 
-      loader.style.display = "block";
-      results.style.display = "none";
-
-      const formData = new FormData();
-      formData.append("referenceImage", file);
-      formData.append("title", title);
-      formData.append("contact", contact);
-      formData.append("extra", extra);
-
-      try {
-        const response = await fetch("/api/generar", {
-          method: "POST",
-          body: formData
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || "Error al generar imágenes");
-        }
-
-        imgPost.src = data.post;
-        imgStory.src = data.story;
-
-        results.style.display = "grid";
-      } catch (error) {
-        alert(error.message || "No se pudo generar");
-      } finally {
-        loader.style.display = "none";
-      }
+    if (!referenceImageBase64) {
+      alert("Cargá una imagen de referencia.");
+      return;
     }
-  </script>
+
+    if (!sourceImageBase64) {
+      alert("Cargá la imagen que querés utilizar en la pieza.");
+      return;
+    }
+
+    if (!title) {
+      alert("Escribí un título.");
+      return;
+    }
+
+    loader.style.display = "block";
+    results.style.display = "none";
+
+    try {
+      const response = await fetch("/api/generar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          referenceImageBase64,
+          sourceImageBase64,
+          title,
+          contact,
+          extra
+        })
+      });
+
+      const rawText = await response.text();
+      console.log("RESPUESTA CRUDA:", rawText);
+
+      let data;
+      try {
+        data = JSON.parse(rawText);
+      } catch (e) {
+        throw new Error("El backend no devolvió JSON válido: " + rawText);
+      }
+
+      if (!response.ok) {
+        throw new Error(data.error || "Error al generar imágenes");
+      }
+
+      imgPost.src = data.post;
+      imgStory.src = data.story;
+      results.style.display = "grid";
+    } catch (error) {
+      console.error(error);
+      alert(error.message || "No se pudo generar");
+    } finally {
+      loader.style.display = "none";
+    }
+  }
+</script>
 </body>
 </html>

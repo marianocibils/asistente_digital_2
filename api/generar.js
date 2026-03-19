@@ -1,75 +1,69 @@
-import express from "express";
-import multer from "multer";
-import fs from "fs";
 import OpenAI from "openai";
-
-const router = express.Router();
-const upload = multer({ dest: "tmp/" });
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-function fileToDataURI(filePath, mimeType = "image/png") {
-  const fileBuffer = fs.readFileSync(filePath);
-  const base64 = fileBuffer.toString("base64");
-  return `data:${mimeType};base64,${base64}`;
-}
-
-router.post("/generar", upload.single("referenceImage"), async (req, res) => {
-  let tempPath = null;
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Método no permitido" });
+  }
 
   try {
-    const { title, contact, extra } = req.body;
-    const file = req.file;
+    const {
+      referenceImageBase64,
+      sourceImageBase64,
+      title,
+      contact,
+      extra
+    } = req.body;
 
-    if (!file) {
+    if (!referenceImageBase64) {
       return res.status(400).json({ error: "Falta la imagen de referencia" });
+    }
+
+    if (!sourceImageBase64) {
+      return res.status(400).json({ error: "Falta la imagen a utilizar" });
     }
 
     if (!title) {
       return res.status(400).json({ error: "Falta el título" });
     }
 
-    tempPath = file.path;
+    const commonPrompt = `
+Create a professional social media advertising design.
 
-    const mimeType = file.mimetype || "image/png";
-    const referenceDataURI = fileToDataURI(tempPath, mimeType);
+There are two visual inputs in this request:
+1. A reference image that defines the aesthetic direction, layout feel, and overall design language.
+2. A source image that must be used as the main visual/product/photo in the final design.
 
-    const commonText = `
-Usar la imagen de referencia como base visual.
-Mantener la esencia estética, producto, estilo, composición y lenguaje visual de la referencia.
-Diseñar una pieza publicitaria profesional para redes sociales.
-Incluir de forma clara y bien integrada este título:
+Main title:
 "${title}"
 
-Incluir esta información de contacto de manera prolija y legible:
-"${contact || "Sin contacto adicional"}"
+Contact information:
+"${contact || "No contact info provided"}"
 
-Indicaciones extra:
-"${extra || "Sin indicaciones extra"}"
+Extra instructions:
+"${extra || "No extra instructions"}"
 
-No agregar marcas de agua.
-Texto bien compuesto, diseño realista, limpio, publicitario y profesional.
+Important:
+- Keep the final design visually inspired by the reference image.
+- Use the source image as the main subject/content of the ad.
+- Clean typography.
+- Commercial, polished, premium social media look.
+- No watermark.
 `;
 
-    // 1080 x 1350
     const postPrompt = `
-${commonText}
-Crear versión para feed vertical 4:5.
-Composición optimizada para Instagram post.
-Dimensión objetivo: 1080x1350 px.
+${commonPrompt}
+Create a vertical Instagram feed post adapted to 1080x1350 proportion.
 `;
 
-    // 1080 x 1920
     const storyPrompt = `
-${commonText}
-Crear versión para story vertical.
-Composición adaptada o equivalente para pantalla completa.
-Dimensión objetivo: 1080x1920 px.
+${commonPrompt}
+Create a vertical Instagram story adapted to 1080x1920 proportion.
 `;
 
-    // Según la implementación/documentación vigente, las imágenes pueden enviarse como data URI/base64. :contentReference[oaicite:1]{index=1}
     const [postResult, storyResult] = await Promise.all([
       openai.images.generate({
         model: "gpt-image-1",
@@ -79,7 +73,7 @@ Dimensión objetivo: 1080x1920 px.
       openai.images.generate({
         model: "gpt-image-1",
         prompt: storyPrompt,
-        size: "1024x1792"
+        size: "1024x1536"
       })
     ]);
 
@@ -88,7 +82,7 @@ Dimensión objetivo: 1080x1920 px.
 
     if (!postBase64 || !storyBase64) {
       return res.status(500).json({
-        error: "No se pudieron generar ambas imágenes"
+        error: "OpenAI no devolvió ambas imágenes"
       });
     }
 
@@ -97,15 +91,10 @@ Dimensión objetivo: 1080x1920 px.
       story: `data:image/png;base64,${storyBase64}`
     });
   } catch (error) {
-    console.error("ERROR GENERANDO:", error);
-    return res.status(500).json({
-      error: error?.message || "Error desconocido"
-    });
-  } finally {
-    if (tempPath && fs.existsSync(tempPath)) {
-      fs.unlinkSync(tempPath);
-    }
-  }
-});
+    console.error("ERROR EN /api/generar:", error);
 
-export default router;
+    return res.status(500).json({
+      error: error?.message || "Error interno del servidor"
+    });
+  }
+}
